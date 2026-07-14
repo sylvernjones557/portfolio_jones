@@ -136,6 +136,7 @@ export default function Skills() {
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [skillsData, setSkillsData] = useState<SkillGroup[]>([]);
   const [activeSkill, setActiveSkill] = useState<{ categoryIdx: number; skillIdx: number } | null>(null);
+  const [skillsActive, setSkillsActive] = useState(false);
   const [activeTooltip, setActiveTooltip] = useState<{
     name: string;
     description: string;
@@ -159,16 +160,18 @@ export default function Skills() {
         { opacity: 0, y: 30 },
         { opacity: 1, y: 0, stagger: 0.12, duration: 0.6, ease: 'power2.out', scrollTrigger: {
           trigger: containerRef.current,
-          start: 'top 80%'
+          start: 'top 80%',
+          onEnter: () => setSkillsActive(true),
+          onEnterBack: () => setSkillsActive(true)
         }}
       );
     }
   }, { scope: containerRef });
 
-  // Sequential highlights loop ONLY on mobile / touch devices (disabled for desktops)
+  // Sequential highlights loop ONLY on mobile / touch devices when scrolled into viewport
   useEffect(() => {
     const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768;
-    if (!isTouchDevice || skillsData.length === 0) return;
+    if (!isTouchDevice || !skillsActive || skillsData.length === 0) return;
 
     // Flatten all skills to access sequentially
     const flatList: { categoryIdx: number; skillIdx: number }[] = [];
@@ -183,10 +186,13 @@ export default function Skills() {
       const activeItem = flatList[currentIdx];
       setActiveSkill({ categoryIdx: activeItem.categoryIdx, skillIdx: activeItem.skillIdx });
       currentIdx = (currentIdx + 1) % flatList.length;
-    }, 750); // Speed increased from 1300ms to 750ms
+    }, 750);
 
-    return () => clearInterval(interval);
-  }, [skillsData]);
+    return () => {
+      clearInterval(interval);
+      setActiveSkill(null);
+    };
+  }, [skillsData, skillsActive]);
 
   // Click outside to dismiss the comment cloud/tooltip
   useEffect(() => {

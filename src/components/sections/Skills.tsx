@@ -166,20 +166,25 @@ export default function Skills() {
     }
   }, { scope: containerRef });
 
-  // Native IntersectionObserver for mobile-friendly viewport detection
+  // Direct scroll listener for reliable mobile viewport detection
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setSkillsActive(entry.isIntersecting);
-      },
-      { threshold: 0.15 } // Trigger when 15% of the section is visible
-    );
-
-    observer.observe(el);
-    return () => observer.unobserve(el);
+    const handleScroll = () => {
+      const el = containerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      // Check if any part of the skills section is currently visible in the viewport
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        setSkillsActive(true);
+      } else {
+        setSkillsActive(false);
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Run initial check
+    handleScroll();
+    
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Sequential highlights loop ONLY on mobile / touch devices when scrolled into viewport

@@ -160,13 +160,27 @@ export default function Skills() {
         { opacity: 0, y: 30 },
         { opacity: 1, y: 0, stagger: 0.12, duration: 0.6, ease: 'power2.out', scrollTrigger: {
           trigger: containerRef.current,
-          start: 'top 80%',
-          onEnter: () => setSkillsActive(true),
-          onEnterBack: () => setSkillsActive(true)
+          start: 'top 80%'
         }}
       );
     }
   }, { scope: containerRef });
+
+  // Native IntersectionObserver for mobile-friendly viewport detection
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setSkillsActive(entry.isIntersecting);
+      },
+      { threshold: 0.15 } // Trigger when 15% of the section is visible
+    );
+
+    observer.observe(el);
+    return () => observer.unobserve(el);
+  }, []);
 
   // Sequential highlights loop ONLY on mobile / touch devices when scrolled into viewport
   useEffect(() => {
